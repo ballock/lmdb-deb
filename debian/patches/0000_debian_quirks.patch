@@ -1,0 +1,73 @@
+--- lmdb.orig/libraries/liblmdb/Makefile
++++ lmdb/libraries/liblmdb/Makefile
+@@ -23,45 +23,53 @@ OPT = -O2 -g
+ CFLAGS	= $(THREADS) $(OPT) $(W) $(XCFLAGS)
+ LDLIBS	=
+ SOLIBS	=
+-prefix	= /usr/local
++SOVER   = 0
++prefix	= /usr
++INSTALL = cp -d -p
+ 
+ ########################################################################
+ 
+ IHDRS	= lmdb.h
+ ILIBS	= liblmdb.a liblmdb.so
++ELIBS	= liblmdb.so.$(SOVER) liblmdb.so.$(SOVER).0.0
+ IPROGS	= mdb_stat mdb_copy
+ IDOCS	= mdb_stat.1 mdb_copy.1
+ PROGS	= $(IPROGS) mtest mtest2 mtest3 mtest4 mtest5
+ all:	$(ILIBS) $(PROGS)
+ 
+ install: $(ILIBS) $(IPROGS) $(IHDRS)
+-	for f in $(IPROGS); do cp $$f $(DESTDIR)$(prefix)/bin; done
+-	for f in $(ILIBS); do cp $$f $(DESTDIR)$(prefix)/lib; done
+-	for f in $(IHDRS); do cp $$f $(DESTDIR)$(prefix)/include; done
+-	for f in $(IDOCS); do cp $$f $(DESTDIR)$(prefix)/man/man1; done
++	for d in bin lib/$(DEB_HOST_MULTIARCH) include share/man/man1; do mkdir -p $(DESTDIR)$(prefix)/$$d; done
++	for f in $(IPROGS); do $(INSTALL) $$f $(DESTDIR)$(prefix)/bin; done
++	for f in $(ILIBS); do $(INSTALL) $$f $(DESTDIR)$(prefix)/lib/$(DEB_HOST_MULTIARCH); done
++	for f in $(ELIBS); do $(INSTALL) $$f $(DESTDIR)$(prefix)/lib/$(DEB_HOST_MULTIARCH); done
++	for f in $(IHDRS); do $(INSTALL) $$f $(DESTDIR)$(prefix)/include; done
++	for f in $(IDOCS); do $(INSTALL) $$f $(DESTDIR)$(prefix)/share/man/man1; done
++
+ 
+ clean:
+-	rm -rf $(PROGS) *.[ao] *.so *~ testdb
++	rm -rf $(PROGS) *.[ao] *.so *.so.* *~ testdb
+ 
+ test:	all
+ 	mkdir testdb
+-	./mtest && ./mdb_stat testdb
++	LD_LIBRARY_PATH=$(CURDIR) ./mtest && LD_LIBRARY_PATH=$(CURDIR) ./mdb_stat testdb
+ 
+ liblmdb.a:	mdb.o midl.o
+ 	ar rs $@ mdb.o midl.o
+ 
+ liblmdb.so:	mdb.o midl.o
+ #	$(CC) $(LDFLAGS) -pthread -shared -Wl,-Bsymbolic -o $@ mdb.o midl.o $(SOLIBS)
+-	$(CC) $(LDFLAGS) -pthread -shared -o $@ mdb.o midl.o $(SOLIBS)
+-
+-mdb_stat: mdb_stat.o liblmdb.a
+-mdb_copy: mdb_copy.o liblmdb.a
+-mtest:    mtest.o    liblmdb.a
+-mtest2:	mtest2.o liblmdb.a
+-mtest3:	mtest3.o liblmdb.a
+-mtest4:	mtest4.o liblmdb.a
+-mtest5:	mtest5.o liblmdb.a
+-mtest6:	mtest6.o liblmdb.a
++	$(CC) $(LDFLAGS) -fPIC -Wl,-soname,liblmdb.so.$(SOVER) -pthread -Wl,-Bsymbolic -shared -o $@.$(SOVER).0.0 mdb.o midl.o $(SOLIBS)
++	ln -s $@.$(SOVER).0.0 liblmdb.so.$(SOVER)
++	ln -s liblmdb.so.$(SOVER) liblmdb.so
++
++mdb_stat: mdb_stat.o liblmdb.so.$(SOVER)
++mdb_copy: mdb_copy.o liblmdb.so.$(SOVER)
++mtest:    mtest.o    liblmdb.so.$(SOVER)
++mtest2:	mtest2.o liblmdb.so.$(SOVER)
++mtest3:	mtest3.o liblmdb.so.$(SOVER)
++mtest4:	mtest4.o liblmdb.so.$(SOVER)
++mtest5:	mtest5.o liblmdb.so.$(SOVER)
++mtest6:	mtest6.o liblmdb.so.$(SOVER)
+ 
+ mdb.o: mdb.c lmdb.h midl.h
+ 	$(CC) $(CFLAGS) -fPIC $(CPPFLAGS) -c mdb.c

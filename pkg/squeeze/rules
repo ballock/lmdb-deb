@@ -1,0 +1,27 @@
+#!/usr/bin/make -f
+
+MANPAGES=compat.3 debug.3 errors.3 idls.3 internal.3 lmdb.h.3 mt_dbflag.3 readers.3 todo.3 Version.3
+
+%:
+	dh $@ -Dlibraries/liblmdb/
+
+override_dh_auto_clean:
+	dh_auto_clean -Dlibraries/liblmdb/
+	rm -rf html man
+
+override_dh_auto_build:
+	dh_auto_build -Dlibraries/liblmdb/
+	cd libraries/liblmdb && doxygen
+	cd libraries/liblmdb && \
+	for m in $(MANPAGES); do \
+	  mv man/man3/$$m man/man3/mdb_$$m; \
+	done
+
+override_dh_strip:
+	dh_strip --dbg-package=lmdb-dbg
+
+override_dh_install:
+	dh_install -X.la --fail-missing
+
+override_dh_auto_test:
+	dh_auto_test -Dlibraries/liblmdb/

@@ -11,7 +11,6 @@ Homepage: http://symas.com/mdb/
 Package: lmdb-utils
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Multi-Arch: foreign
 Description: Lightning Memory-Mapped Database Utilities
  This package provides tools for manipulating LMDB databases:
   * mdb_stat - LMDB environment status tool
@@ -28,10 +27,8 @@ Package: lmdb-dbg
 Architecture: any
 Section: debug
 Priority: extra
-Pre-Depends: multiarch-support
 Depends: liblmdb0 (= ${binary:Version}),
 	 ${misc:Depends}
-Multi-Arch: same
 Description: Lightning Memory-Mapped Database debug files
  This package provides the detached debug symbols for the LMDB libraries
  and utilities.
@@ -46,9 +43,7 @@ Description: Lightning Memory-Mapped Database debug files
 Package: liblmdb0
 Architecture: any
 Section: libs
-Pre-Depends: multiarch-support
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Multi-Arch: same
 Description: Lightning Memory-Mapped Database shared library
  This package contains the LMDB shared library.
  .
@@ -62,8 +57,6 @@ Description: Lightning Memory-Mapped Database shared library
 Package: liblmdb-dev
 Architecture: any
 Section: libdevel
-Pre-Depends: multiarch-support
-Multi-Arch: same
 Depends: liblmdb0 (= ${binary:Version}),
 	 ${misc:Depends}
 Recommends: lmdb-doc
